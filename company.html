@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Company | MBG ASEAN Reports</title>
+<style>
+  :root{--blue:#1f3186;--grey:#8c8d91;--grey-light:#f3f4f7;--line:#e0e2e8;--good:#1f7a4d}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:#f7f8fa;color:#222;font-size:14px}
+  header{background:linear-gradient(135deg,#152258,#1f3186);color:#fff;padding:20px 40px}
+  header .logo{font-size:11px;color:rgba(255,255,255,.6);font-weight:300;letter-spacing:1px;text-transform:uppercase}
+  header .nav{display:flex;align-items:center;gap:12px;margin-top:4px}
+  header a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px}
+  header a:hover{color:#fff}
+  header h1{font-size:24px;font-weight:700;margin-top:8px}
+  header .sub{font-size:13px;opacity:.7;margin-top:2px}
+  main{max-width:900px;margin:0 auto;padding:32px 40px}
+  .info-row{display:flex;gap:32px;margin-bottom:28px;background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);flex-wrap:wrap}
+  .info-row .item .v{font-size:20px;font-weight:700;color:var(--blue)}
+  .info-row .item .l{font-size:11px;color:var(--grey);text-transform:uppercase;letter-spacing:.5px}
+  h2{color:var(--blue);font-size:16px;margin-bottom:16px}
+  .reports-list{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+  .report-item{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);gap:12px}
+  .report-item:last-child{border-bottom:none}
+  .report-item:hover{background:var(--grey-light)}
+  .report-item .left{display:flex;align-items:center;gap:16px}
+  .report-item .year{font-size:18px;font-weight:800;color:var(--blue);min-width:64px}
+  .type{font-size:11px;padding:3px 10px;border-radius:4px;font-weight:600}
+  .type-10k{background:#e3f0ff;color:var(--blue)}.type-20f{background:#e8f5e9;color:var(--good)}.type-ar{background:#fff3e0;color:#c77c00}
+  .date{font-size:12px;color:var(--grey)}
+  .ref{font-size:10px;color:var(--grey);font-family:monospace}
+  .btn{display:inline-block;padding:6px 16px;background:var(--blue);color:#fff!important;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap}
+  .btn:hover{background:#2a4499}
+  .loading{text-align:center;padding:48px;color:var(--grey)}
+  .empty{text-align:center;padding:48px;color:var(--grey)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">MBG Investment Management</div>
+  <div class="nav"><a id="backCountry" href="#">← Country</a><a href="index.html">Dashboard</a></div>
+  <h1 id="name">Loading…</h1>
+  <div class="sub" id="sub"></div>
+</header>
+<main>
+  <div class="info-row" id="inforow"></div>
+  <h2 id="reportsHeading">Annual Reports</h2>
+  <div id="reports"><div class="loading">Loading…</div></div>
+</main>
+<script>
+const params=new URLSearchParams(location.search);
+const CC=params.get('c')||'PH', ID=params.get('id'), TICK=params.get('t')||'';
+document.getElementById('backCountry').href='country.html?c='+CC;
+function typeClass(t){return t.includes('10-K')?'type-10k':t.includes('20-F')?'type-20f':'type-ar';}
+const FLAGS={PH:'🇵🇭',SG:'🇸🇬',TH:'🇹🇭',MY:'🇲🇾',ID:'🇮🇩',VN:'🇻🇳',US:'🇺🇸'};
+// Choose the right reports file: sharded for large countries (US) by first char
+let file;
+if(CC==='US'){let fc=(TICK[0]||'0').toUpperCase();if(!/[A-Z0-9]/.test(fc))fc='0';file=`./data/reports_US_${fc}.json`;}
+else file=`./data/reports_${CC}.json`;
+fetch(file).then(r=>r.json()).then(d=>{
+  const c=d[ID];
+  if(!c){document.getElementById('name').textContent='Company not found';document.getElementById('reports').innerHTML='<div class="empty">No data for this company.</div>';return;}
+  document.getElementById('name').textContent=c.name;
+  document.getElementById('sub').textContent=(FLAGS[CC]||'')+' '+c.ticker+' · '+CC;
+  const reps=c.reports||[];
+  document.getElementById('inforow').innerHTML=
+    `<div class="item"><div class="v">${c.ticker}</div><div class="l">Ticker</div></div>
+     <div class="item"><div class="v">${c.sector||'—'}</div><div class="l">Sector</div></div>
+     <div class="item"><div class="v">${reps.length}</div><div class="l">Annual Reports</div></div>
+     <div class="item"><div class="v">${reps.length?('FY'+reps[0].fiscal_year):'—'}</div><div class="l">Latest</div></div>`;
+  document.getElementById('reportsHeading').textContent=`Annual Reports (${reps.length})`;
+  document.getElementById('reports').innerHTML=reps.length?
+    '<div class="reports-list">'+reps.map(r=>`<div class="report-item"><div class="left">
+      <div class="year">FY${r.fiscal_year}</div>
+      <div><span class="type ${typeClass(r.filing_type)}">${r.filing_type}</span>
+      <div class="date" style="margin-top:4px">Filed ${r.filing_date}</div>
+      <div class="ref">${r.file_id||''}</div></div></div>
+      <a class="btn" href="${r.source_url}" target="_blank">View Document ↗</a></div>`).join('')+'</div>'
+    :'<div class="empty">No annual reports found for this company.</div>';
+}).catch(e=>{document.getElementById('reports').innerHTML='<div class="empty">Could not load report data.</div>';});
+</script>
+</body>
+</html>

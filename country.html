@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Country | MBG ASEAN Reports</title>
+<style>
+  :root{--blue:#1f3186;--grey:#8c8d91;--grey-light:#f3f4f7;--line:#e0e2e8;--good:#1f7a4d;--bad:#b02a2a;--warn:#d4a843}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:#f7f8fa;color:#222;font-size:14px}
+  header{background:linear-gradient(135deg,#152258,#1f3186);color:#fff;padding:20px 40px}
+  header .logo{font-size:11px;color:rgba(255,255,255,.6);font-weight:300;letter-spacing:1px;text-transform:uppercase}
+  header .nav{display:flex;align-items:center;gap:16px;margin-top:4px}
+  header a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px}
+  header a:hover{color:#fff}
+  header h1{font-size:22px;font-weight:700}
+  header .info{font-size:12px;opacity:.7;margin-top:4px}
+  .coverage-bar-container{background:#fff;padding:16px 40px;border-bottom:1px solid var(--line);display:flex;gap:32px;align-items:center}
+  .coverage-bar-container .pct{font-size:28px;font-weight:800;color:var(--blue)}
+  .coverage-bar-container .label{font-size:11px;color:var(--grey);text-transform:uppercase}
+  .progress-bar{flex:1;height:12px;background:var(--line);border-radius:6px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:6px}
+  main{max-width:1400px;margin:0 auto;padding:24px 40px}
+  .filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .filters input,.filters select{padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;outline:none}
+  .filters input{flex:1;min-width:200px}
+  .filter-count{font-size:12px;color:var(--grey);align-self:center}
+  table{width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07);border-collapse:collapse}
+  th{background:var(--blue);color:#fff;text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer}
+  td{padding:10px 16px;border-bottom:1px solid var(--line);font-size:13px}
+  tr:hover td{background:var(--grey-light)}
+  .ticker{font-weight:700;color:var(--blue)}
+  a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+  .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e7e9f2;color:var(--blue)}
+  .badge-zero{background:#fee;color:var(--bad)}
+  .year-range{font-size:11px;color:var(--grey)}
+  .loading{text-align:center;padding:48px;color:var(--grey)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">MBG Investment Management</div>
+  <div class="nav"><a href="index.html">← Dashboard</a><h1 id="title">Loading…</h1></div>
+  <div class="info" id="exchange"></div>
+</header>
+<div class="coverage-bar-container" id="covbar" style="display:none">
+  <div><div class="pct" id="covpct">0%</div><div class="label">Coverage</div></div>
+  <div class="progress-bar"><div class="progress-fill" id="covfill"></div></div>
+  <div><div class="pct" id="covcount">0</div><div class="label">Companies</div></div>
+</div>
+<main>
+  <div class="filters">
+    <input type="text" id="q" placeholder="Filter by company name or ticker...">
+    <select id="sector"><option value="">All Sectors</option></select>
+    <select id="hasReports"><option value="">All Companies</option><option value="yes">With Reports</option><option value="no">Without Reports</option></select>
+    <select id="sort"><option value="ticker">Sort: Ticker A-Z</option><option value="name">Sort: Name A-Z</option><option value="reports">Sort: Most Reports</option><option value="latest">Sort: Latest FY</option></select>
+    <span class="filter-count" id="count"></span>
+  </div>
+  <table id="tbl"><tbody><tr><td class="loading">Loading companies…</td></tr></tbody></table>
+</main>
+<script>
+const params=new URLSearchParams(location.search);const CC=params.get('c')||'PH';
+let DATA=null;
+function render(){
+  if(!DATA)return;
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const sector=document.getElementById('sector').value;
+  const hr=document.getElementById('hasReports').value;
+  const sort=document.getElementById('sort').value;
+  let rows=DATA.companies.filter(c=>{
+    if(q&&!(c.ticker.toLowerCase().includes(q)||(c.name||'').toLowerCase().includes(q)))return false;
+    if(sector&&c.sector!==sector)return false;
+    if(hr==='yes'&&c.report_count<1)return false;
+    if(hr==='no'&&c.report_count>0)return false;
+    return true;});
+  rows.sort((a,b)=>{
+    if(sort==='name')return (a.name||'').localeCompare(b.name||'');
+    if(sort==='reports')return b.report_count-a.report_count;
+    if(sort==='latest')return (b.latest_year||0)-(a.latest_year||0);
+    return a.ticker.localeCompare(b.ticker);});
+  document.getElementById('count').textContent=rows.length+' companies';
+  document.getElementById('tbl').innerHTML=
+    `<thead><tr><th>Ticker</th><th>Company Name</th><th>Sector</th><th style="text-align:center">Reports</th><th>Fiscal Years</th></tr></thead><tbody>`+
+    rows.map(c=>`<tr><td class="ticker">${c.ticker}</td>
+      <td><a href="company.html?c=${CC}&id=${c.id}&t=${encodeURIComponent(c.ticker)}">${c.name||''}</a></td>
+      <td style="font-size:12px;color:var(--grey)">${c.sector||'—'}</td>
+      <td style="text-align:center">${c.report_count>0?`<span class="badge">${c.report_count}</span>`:`<span class="badge badge-zero">0</span>`}</td>
+      <td class="year-range">${c.latest_year?(c.earliest_year+'–'+c.latest_year):'—'}</td></tr>`).join('')+`</tbody>`;
+}
+fetch(`./data/country_${CC}.json`).then(r=>r.json()).then(d=>{
+  DATA=d;const c=d.country;
+  document.getElementById('title').textContent=c.flag+' '+c.name;
+  document.getElementById('exchange').textContent=c.exchange_name+' · '+c.currency;
+  const cov=document.getElementById('covbar');cov.style.display='flex';
+  document.getElementById('covpct').textContent=c.coverage_pct+'%';
+  document.getElementById('covcount').textContent=d.companies.length;
+  const cls=c.coverage_pct>=80?'var(--good)':c.coverage_pct>=40?'var(--warn)':'var(--bad)';
+  const f=document.getElementById('covfill');f.style.width=c.coverage_pct+'%';f.style.background=cls;
+  const secs=[...new Set(d.companies.map(x=>x.sector).filter(s=>s&&s!=='N/A'))].sort();
+  document.getElementById('sector').innerHTML='<option value="">All Sectors</option>'+secs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  render();
+  ['q','sector','hasReports','sort'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+  ['sector','hasReports','sort'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+}).catch(e=>{document.getElementById('tbl').innerHTML='<tbody><tr><td class="loading">Could not load data.</td></tr></tbody>';});
+</script>
+</body>
+</html>

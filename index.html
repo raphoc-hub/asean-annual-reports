@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASEAN + US Annual Reports Database | MBG Investment Management</title>
+<style>
+  :root{--blue:#1f3186;--blue-light:#2a4499;--blue-dark:#152258;--grey:#8c8d91;--grey-light:#f3f4f7;--line:#e0e2e8;--good:#1f7a4d;--bad:#b02a2a;--warn:#d4a843;--bg:#f7f8fa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:#22242b;font-size:14px;line-height:1.5}
+  header{background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.15);flex-wrap:wrap;gap:12px}
+  header .logo{font-size:11px;color:rgba(255,255,255,.6);font-weight:300;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+  header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+  .search-box{position:relative}
+  .search-box input{padding:10px 16px;border:none;border-radius:24px;width:340px;max-width:70vw;font-size:13px;outline:none;background:rgba(255,255,255,.95)}
+  .search-results{position:absolute;top:44px;right:0;width:420px;max-width:90vw;background:#fff;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.18);max-height:480px;overflow-y:auto;display:none;z-index:100}
+  .search-results a{display:flex;justify-content:space-between;gap:10px;padding:10px 16px;color:#222;text-decoration:none;border-bottom:1px solid var(--line);font-size:13px}
+  .search-results a:hover{background:var(--grey-light)}
+  .search-results .ticker{font-weight:700;color:var(--blue)}
+  .search-results .meta{font-size:11px;color:var(--grey);white-space:nowrap}
+  .stats-bar{display:flex;background:#fff;padding:24px 40px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .stat{flex:1;text-align:center;border-right:1px solid var(--line);min-width:120px}
+  .stat:last-child{border-right:none}
+  .stat .num{font-size:34px;font-weight:800;color:var(--blue);line-height:1}
+  .stat .label{font-size:11px;color:var(--grey);text-transform:uppercase;letter-spacing:.8px;margin-top:4px}
+  main{max-width:1400px;margin:0 auto;padding:32px 40px}
+  .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+  .section-header h2{font-size:18px;font-weight:700;color:var(--blue)}
+  .section-header .meta{font-size:12px;color:var(--grey)}
+  table{width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07);border-collapse:collapse;margin-bottom:40px}
+  th{background:var(--blue);color:#fff;text-align:left;padding:13px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+  td{padding:13px 16px;border-bottom:1px solid var(--line);font-size:14px}
+  tr:hover td{background:var(--grey-light)}
+  .country-name{font-weight:700;color:var(--blue)}
+  .exchange{font-size:12px;color:var(--grey)}
+  .num{text-align:right;font-weight:600}
+  a{color:var(--blue);text-decoration:none}
+  .cov-bar{width:120px;height:8px;background:var(--line);border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+  .cov-bar-fill{height:100%;border-radius:4px}
+  .high{background:var(--good)}.mid{background:var(--warn)}.low{background:var(--bad)}
+  .cov-pct{font-size:12px;font-weight:700}
+  .btn-link{display:inline-block;padding:4px 12px;background:var(--blue);color:#fff!important;border-radius:4px;font-size:11px;font-weight:600}
+  .btn-link:hover{background:var(--blue-light)}
+  .filing-types{display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap}
+  .ft-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#fff;border:1px solid var(--line);border-radius:20px;font-size:12px}
+  .ft-badge .dot{width:8px;height:8px;border-radius:50%}
+  .ft-badge .cnt{font-weight:700;color:var(--blue)}
+  .type-10k{background:#e3f0ff;color:var(--blue)}.type-20f{background:#e8f5e9;color:var(--good)}.type-ar{background:#fff3e0;color:#c77c00}
+  .year-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;color:var(--blue);background:#e7e9f2}
+  .country-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:#e7e9f2;color:var(--blue);font-weight:600}
+  .type-tag{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600}
+  .notice{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px 20px;margin-bottom:32px;font-size:13px;color:#856404}
+  .notice strong{color:#533f03}
+  footer{text-align:center;padding:32px;color:var(--grey);font-size:11px;border-top:1px solid var(--line);margin-top:40px}
+  .loading{text-align:center;padding:40px;color:var(--grey)}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="logo">MBG Investment Management</div><h1>ASEAN + US Annual Reports Database</h1></div>
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search companies by name or ticker..." autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</header>
+<div class="stats-bar" id="statsBar"><div class="loading">Loading…</div></div>
+<main>
+  <div class="notice"><strong>Data Quality Notice:</strong> Coverage varies by market. US (SEC EDGAR) has comprehensive 10-K and 20-F filings. Philippines (PSE) and Malaysia (Bursa) have near-complete coverage. Thailand (SET) covers major listed companies. Singapore, Indonesia, and Vietnam coverage is partial due to exchange restrictions. Every filing links to the original document on the official exchange or SEC website.</div>
+  <div class="section-header"><h2>Market Coverage by Country</h2><div class="meta">Click a country to browse companies</div></div>
+  <table id="coverageTable"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+  <div class="section-header"><h2>Filing Types</h2></div>
+  <div class="filing-types" id="filingTypes"></div>
+  <div class="section-header"><h2>Recent Annual Report Filings</h2><div class="meta">Latest across all markets</div></div>
+  <table id="recentTable"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+</main>
+<footer>MBG Investment Management, Inc. · ASEAN + US Annual Reports Database · Data from SEC EDGAR, PSE Edge, SET, Bursa Malaysia, and company filings · For institutional research purposes</footer>
+<script>
+function typeClass(t){return t.includes('10-K')?'type-10k':t.includes('20-F')?'type-20f':'type-ar';}
+function nf(n){return n.toLocaleString();}
+let SEARCH=[];
+fetch('./data/summary.json').then(r=>r.json()).then(d=>{
+  document.getElementById('statsBar').innerHTML=
+    `<div class="stat"><div class="num">${d.total_countries}</div><div class="label">Markets</div></div>
+     <div class="stat"><div class="num">${nf(d.total_companies)}</div><div class="label">Companies</div></div>
+     <div class="stat"><div class="num">${nf(d.total_reports)}</div><div class="label">Annual Reports</div></div>
+     <div class="stat"><div class="num">${d.filing_types.length}</div><div class="label">Filing Types</div></div>`;
+  const order=['PH','MY','TH','US','SG','VN','ID'];
+  const sorted=[...d.clusters].sort((a,b)=>b.coverage_pct-a.coverage_pct);
+  document.getElementById('coverageTable').innerHTML=
+    `<thead><tr><th>Country</th><th>Exchange</th><th>Currency</th><th class="num">Companies</th><th class="num">Reports</th><th>Coverage</th><th></th></tr></thead><tbody>`+
+    sorted.map(c=>{const cls=c.coverage_pct>=80?'high':c.coverage_pct>=40?'mid':'low';
+      return `<tr><td>${c.flag} <span class="country-name">${c.name}</span></td>
+        <td><span class="exchange">${c.exchange_name}</span></td><td>${c.currency}</td>
+        <td class="num">${nf(c.company_count)}</td><td class="num">${nf(c.report_count)}</td>
+        <td><div class="cov-bar"><div class="cov-bar-fill ${cls}" style="width:${c.coverage_pct}%"></div></div><span class="cov-pct">${c.coverage_pct}%</span></td>
+        <td><a class="btn-link" href="country.html?c=${c.code}">Browse →</a></td></tr>`;}).join('')+`</tbody>`;
+  document.getElementById('filingTypes').innerHTML=d.filing_types.map(ft=>
+    `<div class="ft-badge"><span class="dot ${typeClass(ft.filing_type)}"></span>${ft.filing_type}<span class="cnt">${nf(ft.cnt)}</span></div>`).join('');
+  document.getElementById('recentTable').innerHTML=
+    `<thead><tr><th>Market</th><th>Ticker</th><th>Company</th><th>FY</th><th>Type</th><th>Filed</th><th></th></tr></thead><tbody>`+
+    d.recent.map(r=>`<tr><td><span class="country-tag">${r.country_code}</span></td>
+      <td style="font-weight:700;color:var(--blue)">${r.ticker}</td>
+      <td><a href="company.html?c=${r.country_code}&id=${r.company_id}&t=${encodeURIComponent(r.ticker)}">${r.company_name.slice(0,42)}</a></td>
+      <td><span class="year-badge">FY${r.fiscal_year}</span></td>
+      <td><span class="type-tag ${typeClass(r.filing_type)}">${r.filing_type}</span></td>
+      <td>${r.filing_date}</td><td><a class="btn-link" href="${r.source_url}" target="_blank">View ↗</a></td></tr>`).join('')+`</tbody>`;
+});
+fetch('./data/search.json').then(r=>r.json()).then(d=>{SEARCH=d;});
+const si=document.getElementById('search'),sr=document.getElementById('searchResults');
+si.addEventListener('input',()=>{const q=si.value.trim().toLowerCase();
+  if(q.length<1){sr.style.display='none';return;}
+  const res=SEARCH.filter(c=>c.ticker.toLowerCase().includes(q)||c.name.toLowerCase().includes(q))
+    .sort((a,b)=>{const at=a.ticker.toLowerCase().startsWith(q)?0:1,bt=b.ticker.toLowerCase().startsWith(q)?0:1;return at-bt||b.report_count-a.report_count;}).slice(0,30);
+  if(!res.length){sr.style.display='none';return;}
+  sr.innerHTML=res.map(c=>`<a href="company.html?c=${c.country_code}&id=${c.id}&t=${encodeURIComponent(c.ticker)}">
+    <span><span class="ticker">${c.ticker}</span> ${c.name}</span><span class="meta">${c.country_code} · ${c.report_count} reports</span></a>`).join('');
+  sr.style.display='block';});
+document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))sr.style.display='none';});
+</script>
+</body>
+</html>
